@@ -208,7 +208,6 @@ void Matsuno::start() {
 
         // Update Coroutines
         Coroutines.update();
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
     }
 
