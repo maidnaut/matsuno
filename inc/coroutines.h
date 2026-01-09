@@ -71,7 +71,7 @@ public:
 };
 
 // Init Coroutines
-CoroutineManager Coroutines;
+CoroutineManager Coroutines; 
 
 // Coroutines.start("sequence1",
 //     STEP(0, printf("SEQUENCE 1 - Starting.\n")),
