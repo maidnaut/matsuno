@@ -37,15 +37,15 @@ void Matsuno::start() {
 
         switch (GameState) {
             case sLogos: {
-                // matsuno.drawText(
-                //     "Matsuno",
-                //     0,
-                //     0,
-                //     matsuno.fontSize,
-                //     LIGHTGRAY,
-                //     hCenter,
-                //     vMiddle
-                // );
+                matsuno.drawText(
+                    "Matsuno",
+                    0,
+                    0,
+                    matsuno.fontSize,
+                    LIGHTGRAY,
+                    hCenter,
+                    vMiddle
+                );
 
                 drawSquares();
 
