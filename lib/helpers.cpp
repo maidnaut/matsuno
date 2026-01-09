@@ -22,6 +22,12 @@ float lerp(float a, float b, float t) {
     return a + t * (b - a);
 }
 
+void drawRectangleTextured(Texture2D image, Rectangle dest, Vector2 origin, float rotation, float alpha) {
+    Rectangle source = { 0, 0, (float)image.width, (float)image.height };
+    Color tint = (Color){ 255, 255, 255, (unsigned char)(alpha * 255) };
+    DrawTexturePro(image, source, dest, origin, rotation, tint);
+}
+
 void drawSquares() {
     int width = 9;
     int height = 9;
