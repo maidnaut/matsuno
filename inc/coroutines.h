@@ -33,7 +33,6 @@ public:
         coroutines.push_back(co);
     }
 
-    // New version: calculates dt internally
     void update() {
         auto now = std::chrono::steady_clock::now();
         double dt = std::chrono::duration<double>(now - lastTime).count();
@@ -52,22 +51,17 @@ public:
 
             Step& step = co.steps[co.currentStep];
 
-            // Run the callback every frame, regardless of wait
             if (step.callback) step.callback();
 
-            // Subtract dt from timer only if wait > 0
             if (step.wait > 0) {
                 co.timers[co.currentStep] -= dt;
                 if (co.timers[co.currentStep] <= 0.0)
-                    co.currentStep++; // advance automatically when time is up
-            }
-            // For wait == 0, advance immediately after first frame
-            else {
+                    co.currentStep++;
+            } else {
                 co.currentStep++;
             }
         }
 
-        // Remove finished coroutines after loop
         for (int j = (int)toRemove.size() - 1; j >= 0; j--) {
             coroutines.erase(coroutines.begin() + toRemove[j]);
         }
