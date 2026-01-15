@@ -105,8 +105,9 @@ void MatsunoSystem::run() {
 
         // Do the main stuff now
         if (!(SDL_GetWindowFlags(gfx.window) & SDL_WINDOW_MINIMIZED)) {
-            SDL_SetRenderDrawColor(gfx.renderer, 0, 0, 0, 255);
+            
             SDL_RenderClear(gfx.renderer);
+            SDL_SetRenderDrawColor(gfx.renderer, 0, 0, 0, 255);
 
             //gfx.drawSquares();
             //gfx.drawText("Matsuno", 0, 0, colors.lightgray, hCenter, vMiddle);
