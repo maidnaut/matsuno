@@ -1,12 +1,24 @@
-#define STEP(wait, body) Step{ [=](){ body; }, wait }
+// Todo
+// change step to repeat, add a once version
+// yield, resume, skip
+// way to delete a coroutine from the stack
 
-struct Step {
+// Coroutines.start("name", once(x, {}));
+// Coroutines.start("name", repeat(x, {}));
+// Coroutines.yield("name");
+// Coroutines.resume("name");
+// Coroutines.skip("name");
+// Coroutines.dump("name");
+
+#define repeat(wait, body) Repeat{ [=](){ body; }, wait }
+
+struct Repeat {
     std::function<void()> callback;
     double wait;
 };
 
 struct Coroutine {
-    std::vector<Step> steps;
+    std::vector<Repeat> steps;
     std::vector<double> timers;
     size_t currentStep = 0;
     bool isActive = true;
@@ -26,7 +38,7 @@ public:
         startedKeys.insert(key);
 
         Coroutine co;
-        co.steps = std::vector<Step>{ steps... };
+        co.steps = std::vector<Repeat>{ steps... };
         co.timers.resize(co.steps.size());
         for (size_t i = 0; i < co.steps.size(); i++)
             co.timers[i] = co.steps[i].wait;
@@ -49,7 +61,7 @@ public:
                 continue;
             }
 
-            Step& step = co.steps[co.currentStep];
+            Repeat& step = co.steps[co.currentStep];
 
             if (step.callback) step.callback();
 

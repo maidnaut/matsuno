@@ -125,16 +125,16 @@ void MatsunoSystem::run() {
             int img_height = int(180 * scale);
 
             Coroutines.start("logos",
-                STEP(1.0, {}),
-                STEP(2.5, {
+                repeat(1.0, {}),
+                repeat(2.5, {
                     fade += gfx.fps.deltaTime / 2.5f;
                     if (fade > 1.0f) fade = 1.0f;
                     gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
                 }),
-                STEP(4.0, {
+                repeat(4.0, {
                     gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
                 }),
-                STEP(2.5, {
+                repeat(2.5, {
                     fade -= gfx.fps.deltaTime / 2.5f;
                     if (fade < 0.0f) fade = 0.0f;
                     gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
