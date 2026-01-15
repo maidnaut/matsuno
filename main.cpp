@@ -1,9 +1,8 @@
 #include "lib/source.cpp"
 
-int main(void) {
+int main() {
 
-    matsuno.start();
-    return 0;
+    sys.run();
 
 }
 

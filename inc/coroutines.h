@@ -73,6 +73,7 @@ public:
 // Init Coroutines
 CoroutineManager Coroutines; 
 
+// Usage example
 // Coroutines.start("sequence1",
 //     STEP(0, printf("SEQUENCE 1 - Starting.\n")),
 //     STEP(3.0, printf("SEQUENCE 1 - Waited 3 seconds.\n")),
