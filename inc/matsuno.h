@@ -64,6 +64,7 @@ struct MatsunoGraphics {
     SDL_Renderer* renderer = nullptr;
     SDL_Window* window = nullptr;
 
+    bool minimized = false;
 
     const char* font_path = "res/Roboto-Light.ttf";
     TTF_Font *font = nullptr;

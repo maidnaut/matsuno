@@ -89,6 +89,8 @@ void MatsunoSystem::run() {
         // Handle SDL events
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+
+            // Escape
             if (event.type == SDL_EVENT_QUIT ||
                 event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 sys.ShouldExit = true;
@@ -96,16 +98,18 @@ void MatsunoSystem::run() {
                 if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
                     sys.ShouldExit = true;
                 }
-            } else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+            }
+            
+            // Resize
+            if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                 SDL_GetWindowSize(gfx.window, &gfx.windowWidth, &gfx.windowHeight);
                 gfx.centerX = gfx.windowWidth / 2;
                 gfx.centerY = gfx.windowHeight / 2;
             }
         }
 
-        // Do the main stuff now
-        if (!(SDL_GetWindowFlags(gfx.window) & SDL_WINDOW_MINIMIZED)) {
-            
+        // Can't actually check if the window is minimized on wayland so this is redundant
+        if (!gfx.minimized) {
             SDL_RenderClear(gfx.renderer);
             SDL_SetRenderDrawColor(gfx.renderer, 0, 0, 0, 255);
 
