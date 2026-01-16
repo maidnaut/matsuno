@@ -1,5 +1,4 @@
-#ifndef SOURCE_H
-#define SOURCE_H
+#pragma once
 
 typedef enum {
     sLogos,
@@ -135,5 +134,3 @@ inline MatsunoColors colors;
 inline MatsunoAudio audio;
 inline MatsunoInput input;
 inline MatsunoAssets assets;
-
-#endif

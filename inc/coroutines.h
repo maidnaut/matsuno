@@ -10,6 +10,8 @@
 // Coroutines.skip("name");
 // Coroutines.dump("name");
 
+#pragma once
+
 #define repeat(wait, body) Repeat{ [=](){ body; }, wait }
 
 struct Repeat {
