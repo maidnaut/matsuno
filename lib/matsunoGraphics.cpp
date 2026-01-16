@@ -1,3 +1,5 @@
+#pragma once
+
 // SDL helper function
 SDL_Texture* MatsunoGraphics::loadTexture(SDL_Renderer* renderer, const char* path) {
     SDL_Texture* texture = IMG_LoadTexture(renderer, path);

@@ -1,3 +1,5 @@
+#pragma once
+
 // C stuff
 #include <stdio.h>
 #include <stdlib.h>
