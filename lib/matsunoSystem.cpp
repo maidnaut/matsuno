@@ -69,7 +69,6 @@ void MatsunoSystem::update() {
     // Handle SDL events
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
-
         // Escape
         if (e.type == SDL_EVENT_QUIT ||
             e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
@@ -93,8 +92,9 @@ void MatsunoSystem::update() {
     // delta time stuff
     gfx.fps.deltaTime = (SDL_GetPerformanceCounter() - gfx.fps.lastCounter) / gfx.fps.deltaFreq;
     gfx.fps.lastCounter = SDL_GetPerformanceCounter();
-    if ((gfx.fps.frameTime = SDL_GetTicks() - gfx.fps.frameStart) < gfx.fps.frameDelay)
+    if ((gfx.fps.frameTime = SDL_GetTicks() - gfx.fps.frameStart) < gfx.fps.frameDelay) {
         SDL_Delay(gfx.fps.frameDelay - gfx.fps.frameTime);
+    }
 
     // tick coroutines
     Coroutines.update();
