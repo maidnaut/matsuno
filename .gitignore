@@ -3,3 +3,6 @@
 makefile
 matsuno
 todo
+compile_flags.txt
+.clangd
+.clang-tidy
