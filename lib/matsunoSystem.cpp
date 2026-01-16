@@ -16,9 +16,7 @@ void MatsunoSystem::init() {
         sys.windowTitle,
         gfx.windowWidth,
         gfx.windowHeight,
-        SDL_WINDOW_VULKAN |
-        SDL_WINDOW_RESIZABLE |
-        SDL_WINDOW_MOUSE_CAPTURE
+        gfx.windowFlags
     );
     if (!window) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s", SDL_GetError());
@@ -46,7 +44,7 @@ void MatsunoSystem::init() {
     gfx.renderer = renderer; // pass it to matsuno
 
     // Hinting
-    SDL_SetWindowMinimumSize(gfx.window, 1024, 576);  
+    SDL_SetWindowMinimumSize(gfx.window, gfx.minimumWidth, gfx.minimumHeight);
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, gfx.vsync ? "1" : "0");
 
     // Load font

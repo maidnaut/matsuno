@@ -42,6 +42,8 @@ struct MatsunoSystem {
 struct MatsunoGraphics {
     int windowWidth = 1280;
     int windowHeight = 720;
+    int minimumWidth = 1024;
+    int minimumHeight = 576;
 
     int vsync = 1;
     int fpsTarget = 60;
@@ -56,10 +58,7 @@ struct MatsunoGraphics {
     SDL_Renderer* renderer = nullptr;
     SDL_Window* window = nullptr;
 
-    bool minimized = false;
-
-    const char* font_path = "res/Roboto-Light.ttf";
-    TTF_Font *font = nullptr;
+    Uint32 windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE;
 
     struct FPS {
         Uint32 frameDelay;
@@ -76,6 +75,11 @@ struct MatsunoGraphics {
             frameDelay = fpsTarget > 0 ? 1000 / fpsTarget : 0;
         }
     } fps{fpsTarget};
+
+    bool minimized = false;
+
+    const char* font_path = "res/Roboto-Light.ttf";
+    TTF_Font *font = nullptr;
 
     void drawSprite(SDL_Texture* image, float x, float y, float width, float height, float fade);
     void drawSquares();
