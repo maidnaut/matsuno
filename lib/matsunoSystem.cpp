@@ -66,6 +66,30 @@ void MatsunoSystem::init() {
 
 void MatsunoSystem::update() {
 
+    // Handle SDL events
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+
+        // Escape
+        if (e.type == SDL_EVENT_QUIT ||
+            e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            sys.ShouldExit = true;
+            break;
+        } else if (e.type == SDL_EVENT_KEY_DOWN) {
+            if (e.key.scancode == SDL_SCANCODE_ESCAPE) {
+                sys.ShouldExit = true;
+                break;
+            }
+        }
+        
+        // Resize
+        if (e.type == SDL_EVENT_WINDOW_RESIZED) {
+            SDL_GetWindowSize(gfx.window, &gfx.windowWidth, &gfx.windowHeight);
+            gfx.centerX = gfx.windowWidth / 2;
+            gfx.centerY = gfx.windowHeight / 2;
+        }
+    }
+
     // delta time stuff
     gfx.fps.deltaTime = (SDL_GetPerformanceCounter() - gfx.fps.lastCounter) / gfx.fps.deltaFreq;
     gfx.fps.lastCounter = SDL_GetPerformanceCounter();
@@ -88,63 +112,41 @@ void MatsunoSystem::run() {
 
     while (!sys.ShouldExit) {
 
-        // Handle SDL events
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        // Should put an isMinimized check here to skip background rendering, but it's broken on wayland
 
-            // Escape
-            if (event.type == SDL_EVENT_QUIT ||
-                event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
-                sys.ShouldExit = true;
-            } else if (event.type == SDL_EVENT_KEY_DOWN) {
-                if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
-                    sys.ShouldExit = true;
-                }
-            }
-            
-            // Resize
-            if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-                SDL_GetWindowSize(gfx.window, &gfx.windowWidth, &gfx.windowHeight);
-                gfx.centerX = gfx.windowWidth / 2;
-                gfx.centerY = gfx.windowHeight / 2;
-            }
-        }
+        SDL_RenderClear(gfx.renderer);
+        SDL_SetRenderDrawColor(gfx.renderer, 0, 0, 0, 255);
 
-        // Can't actually check if the window is minimized on wayland so this is redundant
-        if (!gfx.minimized) {
-            SDL_RenderClear(gfx.renderer);
-            SDL_SetRenderDrawColor(gfx.renderer, 0, 0, 0, 255);
+        //gfx.drawSquares();
+        //gfx.drawText("Matsuno", 0, 0, colors.lightgray, hCenter, vMiddle);
+        static float fade = 0.0f;
 
-            //gfx.drawSquares();
-            //gfx.drawText("Matsuno", 0, 0, colors.lightgray, hCenter, vMiddle);
-            static float fade = 0.0f;
+        float scaleX = gfx.windowWidth  / 900.0f;
+        float scaleY = gfx.windowHeight / 180.0f;
+        float scale  = glm_min(scaleX, scaleY) * 0.5f;
 
-            float scaleX = gfx.windowWidth  / 900.0f;
-            float scaleY = gfx.windowHeight / 180.0f;
-            float scale  = glm_min(scaleX, scaleY) * 0.5f;
+        int img_width  = int(900 * scale);
+        int img_height = int(180 * scale);
 
-            int img_width  = int(900 * scale);
-            int img_height = int(180 * scale);
+        Coroutines.start("logos",
+            repeat(1.0, {}),
+            repeat(2.5, {
+                fade += gfx.fps.deltaTime / 2.5f;
+                if (fade > 1.0f) fade = 1.0f;
+                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+            }),
+            repeat(4.0, {
+                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+            }),
+            repeat(2.5, {
+                fade -= gfx.fps.deltaTime / 2.5f;
+                if (fade < 0.0f) fade = 0.0f;
+                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+            })
+        );
 
-            Coroutines.start("logos",
-                repeat(1.0, {}),
-                repeat(2.5, {
-                    fade += gfx.fps.deltaTime / 2.5f;
-                    if (fade > 1.0f) fade = 1.0f;
-                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-                }),
-                repeat(4.0, {
-                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-                }),
-                repeat(2.5, {
-                    fade -= gfx.fps.deltaTime / 2.5f;
-                    if (fade < 0.0f) fade = 0.0f;
-                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-                })
-            );
+        sys.update();
 
-            sys.update();
-        }
     }
 
     // Might want to move this into a shutdown() function at some point
