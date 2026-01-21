@@ -21,11 +21,11 @@ void MatsunoGraphics::drawSprite(SDL_Texture* image, float x, float y, float wid
 
 // Text Renderer
 void MatsunoGraphics::drawText(const char *str, int x, int y, SDL_Color color, tAlign hAlign, tAlign vAlign) {
-    if (!gfx.font || !str) return; // sanity check
+    if (!gfx.font || !str) return;
 
     int textWidth = 0, textHeight = 0;
     if (!TTF_GetStringSize(gfx.font, str, strlen(str), &textWidth, &textHeight)) {
-        return; // fail gracefully if size calculation fails
+        return;
     }
 
     if (hAlign == hLeft)   x += gfx.padding;
@@ -37,11 +37,11 @@ void MatsunoGraphics::drawText(const char *str, int x, int y, SDL_Color color, t
     if (vAlign == vBottom) y = gfx.windowHeight - textHeight - gfx.padding;
 
     SDL_Surface *surface = TTF_RenderText_Blended(gfx.font, str, strlen(str), color);
-    if (!surface) return; // check for NULL
+    if (!surface) return;
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(gfx.renderer, surface);
     SDL_DestroySurface(surface);
-    if (!texture) return; // check for NULL
+    if (!texture) return;
 
     SDL_FRect dstRect = {
         (float)x,

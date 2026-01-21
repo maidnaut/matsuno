@@ -1,97 +1,138 @@
-// Todo
-// change step to repeat, add a once version
-// yield, resume, skip
-// way to delete a coroutine from the stack
-
-// Coroutines.start("name", once(x, {}));
-// Coroutines.start("name", repeat(x, {}));
-// Coroutines.yield("name");
-// Coroutines.resume("name");
-// Coroutines.skip("name");
-// Coroutines.dump("name");
-
 #pragma once
 
-#define repeat(wait, body) Repeat{ [=](){ body; }, wait }
+#define repeat(wait, body) Step{ Step::Type::Repeat, [=](){ body; }, wait }
+#define once(wait, body)   Step{ Step::Type::Once,   [=](){ body; }, wait }
 
-struct Repeat {
+struct Step {
+    enum class Type { Repeat, Once };
+    Type type;
     std::function<void()> callback;
     double wait;
+    bool fired = false;
 };
 
 struct Coroutine {
-    std::vector<Repeat> steps;
+    std::string key;
+    std::vector<Step> steps;
     std::vector<double> timers;
     size_t currentStep = 0;
-    bool isActive = true;
+    bool paused = false;
 };
 
 struct CoroutineManager {
-    std::vector<Coroutine> coroutines;
-    std::set<std::string> startedKeys;
+    std::unordered_map<std::string, Coroutine> coroutines;
 
-private:
-    std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
-
-public:
     template<typename... Steps>
     void start(const std::string& key, Steps... steps) {
-        if (startedKeys.count(key)) return;
-        startedKeys.insert(key);
+        // Skip if it already exists
+        if (coroutines.find(key) != coroutines.end()) return;
 
         Coroutine co;
-        co.steps = std::vector<Repeat>{ steps... };
+        co.key = key;
+        co.steps = std::vector<Step>{ steps... };
         co.timers.resize(co.steps.size());
-        for (size_t i = 0; i < co.steps.size(); i++)
+        for (size_t i = 0; i < co.steps.size(); ++i)
             co.timers[i] = co.steps[i].wait;
-        coroutines.push_back(co);
+            
+        coroutines.emplace(key, std::move(co));
+    }
+
+    void yield(const std::string& key) {
+        auto _this = coroutines.find(key);
+        if (_this != coroutines.end()) _this->second.paused = true;
+    }
+
+    void resume(const std::string& key) {
+        auto _this = coroutines.find(key);
+        if (_this != coroutines.end()) _this->second.paused = false;
+    }
+
+    bool exists(const std::string& key) const {
+        auto _this = coroutines.find(key);
+        if (_this == coroutines.end()) return false;
+        return _this->second.currentStep < _this->second.steps.size();
+    }
+
+    int jump(const std::string& key, int stepIndex) {
+        auto _this = coroutines.find(key);
+        if (_this == coroutines.end()) return 0;
+
+        if ((size_t)stepIndex <= _this->second.steps.size()) {
+            return _this->second.currentStep = (size_t)stepIndex;
+        } else {
+            return printf("index out of range\n");
+        }
+    }
+
+    void skip(const std::string& key) {
+        auto _this = coroutines.find(key);
+        if (_this == coroutines.end()) return;
+
+        _this->second.currentStep = _this->second.steps.size();
     }
 
     void update() {
-        auto now = std::chrono::steady_clock::now();
-        double dt = std::chrono::duration<double>(now - lastTime).count();
-        lastTime = now;
+        for (auto& pair : coroutines) {
+            Coroutine& co = pair.second;
 
-        std::vector<size_t> toRemove;
+            // Skip if paused or already finished
+            if (co.paused || co.currentStep >= co.steps.size()) continue;
 
-        for (size_t i = 0; i < coroutines.size(); i++) {
-            Coroutine& co = coroutines[i];
+            Step& step = co.steps[co.currentStep];
 
-            if (co.currentStep >= co.steps.size()) {
-                co.isActive = false;
-                toRemove.push_back(i);
-                continue;
+            if (step.type == Step::Type::Repeat) {
+                if (step.callback) step.callback();
+            } else if (!step.fired) {
+                if (step.callback) step.callback();
+                step.fired = true;
             }
-
-            Repeat& step = co.steps[co.currentStep];
-
-            if (step.callback) step.callback();
 
             if (step.wait > 0) {
-                co.timers[co.currentStep] -= dt;
+                co.timers[co.currentStep] -= sys.dt.deltaTime;
                 if (co.timers[co.currentStep] <= 0.0)
-                    co.currentStep++;
+                    ++co.currentStep;
             } else {
-                co.currentStep++;
+                ++co.currentStep;
             }
         }
-
-        for (int j = (int)toRemove.size() - 1; j >= 0; j--) {
-            coroutines.erase(coroutines.begin() + toRemove[j]);
-        }
     }
-
-    bool hasActive() const { return !coroutines.empty(); }
 };
 
-// Init Coroutines
-CoroutineManager Coroutines; 
+CoroutineManager Coroutines;
 
-// Usage example
-// Coroutines.start("sequence1",
-//     STEP(0, printf("SEQUENCE 1 - Starting.\n")),
-//     STEP(3.0, printf("SEQUENCE 1 - Waited 3 seconds.\n")),
-//     STEP(0, printf("SEQUENCE 1 - Continuing after wait.\n")),
-//     STEP(2.0, printf("SEQUENCE 1 - Waited 2 more seconds.\n")),
-//     STEP(0, printf("SEQUENCE 1 - Completed.\n"))
-// );
+
+/*
+
+    Coroutines.start(id, callback);
+        Start a coroutine, needs to be fed an id, and either repeat or once as a callback, can be chained:
+
+        Coroutines.start(id,
+            callback(x, {...}),
+            callback(x, {...}),
+            callback(x, {...})
+        ));
+
+    Coroutines.start(id, once(x, {...}));
+        Fires the callback once, then waits. x is a time in double
+
+    Coroutines.start(id, repeat(x, {...}));
+        Similar to once(), but repeats the step each frame until the wait expires, then moves onto the next step
+
+    Coroutines.yield(id);
+        Pauses the specified coroutine until resume() is called
+
+    Coroutines.resume(id);
+        Resumes the coroutine
+
+    Coroutines.exists(id);
+        Check if a coroutine is running, returns true or false
+        
+        if (Coroutines.exists(id)) {...}
+
+    Coroutines.jump(id, index);
+        Jump to the specified index
+
+    Coroutines.skip(id);
+        Completely skips over the coroutine
+
+*/

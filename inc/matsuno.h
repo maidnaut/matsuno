@@ -30,6 +30,24 @@ struct MatsunoSystem {
     const char* windowIcon = "res/icon.png";
 
     bool ShouldExit;
+    
+    int fpsTarget = 60;
+
+    struct DeltaTime {
+        Uint32 frameDelay;
+        Uint32 frameStart;
+        Uint32 frameTime;
+
+        uint64_t now = 0;
+        double deltaTime = 0.0;
+
+        double deltaFreq = (double)SDL_GetPerformanceFrequency();
+        uint64_t lastCounter = SDL_GetPerformanceCounter();
+        
+        DeltaTime(int fpsTarget) {
+            frameDelay = fpsTarget > 0 ? 1000 / fpsTarget : 0;
+        }
+    } dt{fpsTarget};
 
     GameStates GameState = sLogos;
 
@@ -46,7 +64,6 @@ struct MatsunoGraphics {
     int minimumHeight = 576;
 
     int vsync = 1;
-    int fpsTarget = 60;
     int fontSize = 48;
     int padding = 16;
 
@@ -59,22 +76,6 @@ struct MatsunoGraphics {
     SDL_Window* window = nullptr;
 
     Uint32 windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE;
-
-    struct FPS {
-        Uint32 frameDelay;
-        Uint32 frameStart;
-        Uint32 frameTime;
-
-        uint64_t now = 0;
-        double deltaTime = 0.0;
-
-        double deltaFreq = (double)SDL_GetPerformanceFrequency();
-        uint64_t lastCounter = SDL_GetPerformanceCounter();
-        
-        FPS(int fpsTarget) {
-            frameDelay = fpsTarget > 0 ? 1000 / fpsTarget : 0;
-        }
-    } fps{fpsTarget};
 
     bool minimized = false;
 

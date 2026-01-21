@@ -66,6 +66,7 @@ void MatsunoSystem::update() {
 
     // Handle SDL events
     SDL_Event e;
+    SDL_PumpEvents();
     while (SDL_PollEvent(&e)) {
         // Escape
         if (e.type == SDL_EVENT_QUIT ||
@@ -88,10 +89,10 @@ void MatsunoSystem::update() {
     }
 
     // delta time stuff
-    gfx.fps.deltaTime = (SDL_GetPerformanceCounter() - gfx.fps.lastCounter) / gfx.fps.deltaFreq;
-    gfx.fps.lastCounter = SDL_GetPerformanceCounter();
-    if ((gfx.fps.frameTime = SDL_GetTicks() - gfx.fps.frameStart) < gfx.fps.frameDelay) {
-        SDL_Delay(gfx.fps.frameDelay - gfx.fps.frameTime);
+    sys.dt.deltaTime = (SDL_GetPerformanceCounter() - sys.dt.lastCounter) / sys.dt.deltaFreq;
+    sys.dt.lastCounter = SDL_GetPerformanceCounter();
+    if ((sys.dt.frameTime = SDL_GetTicks() - sys.dt.frameStart) < sys.dt.frameDelay) {
+        SDL_Delay(sys.dt.frameDelay - sys.dt.frameTime);
     }
 
     // tick coroutines
@@ -126,22 +127,45 @@ void MatsunoSystem::run() {
         int img_width  = int(900 * scale);
         int img_height = int(180 * scale);
 
-        Coroutines.start("logos",
-            repeat(1.0, {}),
-            repeat(2.5, {
-                fade += gfx.fps.deltaTime / 2.5f;
-                if (fade > 1.0f) fade = 1.0f;
-                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-            }),
-            repeat(4.0, {
-                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-            }),
-            repeat(2.5, {
-                fade -= gfx.fps.deltaTime / 2.5f;
-                if (fade < 0.0f) fade = 0.0f;
-                gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
-            })
-        );
+        // If the logos coroutine isn't made, make it first then skip
+        if (!Coroutines.exists("logos")) {
+
+            Coroutines.start("logos",
+                repeat(1.0, {}),
+                repeat(1.5, {
+                    fade += sys.dt.deltaTime / 1.5f;
+                    if (fade > 1.0f) fade = 1.0f;
+                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+                }),
+                repeat(4.0, {
+                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+                }),
+                repeat(1.5, {
+                    fade -= sys.dt.deltaTime / 1.5f;
+                    if (fade < 0.0f) fade = 0.0f;
+                    gfx.drawSprite(icon, gfx.centerX, gfx.centerY, img_width, img_height, fade);
+                })
+            );
+
+        } else {
+
+            // Input stuff
+            int numkeys;
+            const bool* key_states = SDL_GetKeyboardState(&numkeys);
+
+            bool anyKey = false;
+            for (int i = 0; i < numkeys; i++) {
+                if (key_states[i]) {
+                    anyKey = true;
+                    break;
+                }
+            }
+
+            if (anyKey) {
+                Coroutines.jump("logos", 3);
+            }
+
+        }
 
         sys.update();
 
